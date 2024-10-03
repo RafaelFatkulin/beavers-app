@@ -7,7 +7,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,6 +16,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { signIn } from "../actions";
 import { useEffect } from "react";
+import { toast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export const signInSchema = z.object({
   email: z
@@ -23,28 +25,44 @@ export const signInSchema = z.object({
     .email({ message: "Некорректный Email" }),
   password: z
     .string({ required_error: "Пароль обязателен к заполнению" })
-    .min(8, { message: "Пароль должен содержать не менее 8 символов" })
+    .min(8, { message: "Пароль должен содержать не менее 8 символов" }),
 });
 
 const initialState = {
   data: null,
   message: null,
-  error: null
+  error: null,
 };
 
 export const SignInForm = () => {
+  const router = useRouter();
   const [formState, formAction] = useFormState(signIn, initialState);
 
   const form = useForm<z.infer<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
       email: "",
-      password: ""
-    }
+      password: "",
+    },
   });
 
   useEffect(() => {
     console.log(formState);
+    // if (formState?.success) {
+    //   toast({
+    //     variant: "success",
+    //     title: formState.message,
+    //   });
+    // }
+    // if (!formState.success) {
+    //   toast({
+    //     variant: "destructive",
+    //     title: formState.message,
+    //   });
+    // }
+    if (formState?.data?.accessToken) {
+      router.push("/dashboard");
+    }
   }, [formState]);
 
   const onSubmit = (values: z.infer<typeof signInSchema>) => {
@@ -62,7 +80,7 @@ export const SignInForm = () => {
       <form
         action={formAction}
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-2"
+        className="space-y-4"
       >
         <FormField
           control={form.control}
@@ -97,7 +115,12 @@ export const SignInForm = () => {
             </FormItem>
           )}
         />
-        <Button type="submit">Войти</Button>
+        <Button
+          type="submit"
+          className="w-full"
+        >
+          Войти
+        </Button>
       </form>
     </Form>
   );
