@@ -7,7 +7,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
+  FormMessage
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,13 +25,13 @@ export const signInSchema = z.object({
     .email({ message: "Некорректный Email" }),
   password: z
     .string({ required_error: "Пароль обязателен к заполнению" })
-    .min(8, { message: "Пароль должен содержать не менее 8 символов" }),
+    .min(8, { message: "Пароль должен содержать не менее 8 символов" })
 });
 
 const initialState = {
   data: null,
   message: null,
-  error: null,
+  error: null
 };
 
 export const SignInForm = () => {
@@ -42,31 +42,17 @@ export const SignInForm = () => {
     resolver: zodResolver(signInSchema),
     defaultValues: {
       email: "",
-      password: "",
-    },
+      password: ""
+    }
   });
 
   useEffect(() => {
-    console.log(formState);
-    // if (formState?.success) {
-    //   toast({
-    //     variant: "success",
-    //     title: formState.message,
-    //   });
-    // }
-    // if (!formState.success) {
-    //   toast({
-    //     variant: "destructive",
-    //     title: formState.message,
-    //   });
-    // }
     if (formState?.data?.accessToken) {
       router.push("/dashboard");
     }
   }, [formState]);
 
   const onSubmit = (values: z.infer<typeof signInSchema>) => {
-    console.log(values);
     const formData = new FormData();
 
     formData.append("email", values.email);

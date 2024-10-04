@@ -1,37 +1,36 @@
 "use server";
-import { ErrorResponse, SuccessResponse } from "@/types";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { NextRequest } from "next/server";
 
-const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+import { SuccessResponse } from "@/types";
+import { cookies } from "next/headers";
+import { api } from "@/lib/api";
 
 export async function signIn(prevState: any, formData: FormData) {
-  const url = new URL("/auth/signin", baseUrl);
-
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: formData.get("email"),
-        password: formData.get("password"),
-      }),
-    });
-    const responseData: SuccessResponse<{
+  const response = await api.post<
+    SuccessResponse<{
       accessToken: string;
       refreshToken: string;
-    }> = await response.json();
+    }>
+  >("/auth/signin", {
+    email: formData.get("email"),
+    password: formData.get("password")
+  });
 
-    cookies().set("accessToken", responseData.data.accessToken);
-    cookies().set("refreshToken", responseData.data.refreshToken);
+  cookies().set("accessToken", response.data.data.accessToken, {
+    secure: false,
+    httpOnly: true,
+    path: "/"
+  });
+  cookies().set("refreshToken", response.data.data.refreshToken, {
+    secure: false,
+    httpOnly: true,
+    path: "/"
+  });
 
-    return {
-      ...prevState,
-      ...responseData,
-    };
-  } catch (error: ErrorResponse | unknown) {
-    console.log("@@error", error);
-  }
+  return {
+    ...prevState,
+    ...response.data
+  };
 }
+
+export async function refreshToken(request: NextRequest) {}

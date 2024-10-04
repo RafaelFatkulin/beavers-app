@@ -1,40 +1,38 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "./app/(auth)/_services";
 
-export function middleware(request: NextRequest) {
-  console.log(
-    "@@middle",
-    request.url,
-    new URL(request.url, request.url).href,
-    new URL(request.url, request.url).href === new URL("/", request.url).href
-  );
-  console.log("@@cookies", request.cookies.getAll());
+export async function middleware(request: NextRequest) {
+  const currentUrl = new URL(request.url, request.url).href;
+  const urlToCompare = (path: string) => new URL(path, request.url).href;
 
-  if (
-    new URL(request.url, request.url).href === new URL("/", request.url).href
-  ) {
+  const isUrl = (path: string) => {
+    return currentUrl === urlToCompare(path);
+  };
+
+  const currentUser = await getCurrentUser();
+
+  console.log("@@currentUser", currentUser);
+
+  if (!currentUser?.success) {
+  }
+
+  if (isUrl("/")) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  const cookieStore = cookies();
-  const accessCookie = cookieStore.get("accessToken")?.value;
-
-  if (
-    new URL(request.url, request.url).href ===
-      new URL("/sign-in", request.url).href &&
-    accessCookie
-  ) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+  if (isUrl("/dashboard") && !currentUser?.success) {
+    return NextResponse.redirect(new URL("/sign-in", request.url));
   }
 
-  console.log(accessCookie);
+  if ((isUrl("/sign-in") || isUrl("/sign-up")) && currentUser?.success) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
 
   return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
-  ],
+    "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)"
+  ]
 };
