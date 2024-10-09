@@ -1,9 +1,9 @@
 import Link from "next/link";
 
-export default function Dashboard() {
+export default function Test() {
   return (
     <>
-      <h1>Dashboard</h1>{" "}
+      <h1>Test</h1>
       <ul className="flex flex-row items-center gap-4">
         <li>
           <Link href="/dashboard">Dashboard</Link>

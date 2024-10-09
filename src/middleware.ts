@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "./app/(auth)/_services";
 
 export async function middleware(request: NextRequest) {
   const currentUrl = new URL(request.url, request.url).href;
@@ -9,22 +8,7 @@ export async function middleware(request: NextRequest) {
     return currentUrl === urlToCompare(path);
   };
 
-  const currentUser = await getCurrentUser();
-
-  console.log("@@currentUser", currentUser);
-
-  if (!currentUser?.success) {
-  }
-
   if (isUrl("/")) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
-
-  if (isUrl("/dashboard") && !currentUser?.success) {
-    return NextResponse.redirect(new URL("/sign-in", request.url));
-  }
-
-  if ((isUrl("/sign-in") || isUrl("/sign-up")) && currentUser?.success) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 

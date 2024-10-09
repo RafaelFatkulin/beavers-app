@@ -1,6 +1,7 @@
 import type { ErrorResponse, SuccessResponse } from "@/types";
 import { User } from "@/types/user";
 import { api } from "@/lib/api";
+import { AxiosError } from "axios";
 
 export async function getCurrentUser() {
   try {
