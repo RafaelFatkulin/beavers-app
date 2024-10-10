@@ -1,12 +1,10 @@
 import { api } from "@/lib/api";
 import { SuccessResponse } from "@/types";
-import { cookies, headers } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: Request) {
-  console.log("@@api-refresh");
-
+export async function POST(request: NextRequest) {
   const body: { refreshToken: string } = await request.json();
+  console.log("@@api-body", body);
 
   try {
     const response = await api.post<
@@ -15,27 +13,34 @@ export async function POST(request: Request) {
       refreshToken: body.refreshToken
     });
 
+    console.log("@@api-response", response.data);
+
     const { accessToken, refreshToken: newRefreshToken } = response.data.data;
 
-    cookies().set("accessToken", accessToken, {
-      secure: false,
-      httpOnly: true,
-      path: "/"
-    });
-
-    cookies().set("refreshToken", newRefreshToken, {
-      secure: false,
-      httpOnly: true,
-      path: "/"
-    });
-
-    const accessTokenCookie = `accessToken=${accessToken}; HttpOnly; Path=/; Secure`;
-    const refreshTokenCookie = `refreshToken=${newRefreshToken}; HttpOnly; Path=/; Secure`;
-    headers().set("Set-Cookie", `${accessTokenCookie}, ${refreshTokenCookie}`);
-    return NextResponse.json({
+    const res = NextResponse.json({
+      message: "Welcome",
       accessToken,
       refreshToken: newRefreshToken
     });
+
+    // Set the cookies using `NextResponse.cookies.set`
+    res.cookies.set("accessToken", accessToken, {
+      httpOnly: true,
+      path: "/",
+      secure: true,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 30
+    });
+
+    res.cookies.set("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      path: "/",
+      secure: true,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 30
+    });
+
+    return res;
   } catch (error) {
     return new Response(JSON.stringify(error), {
       status: 500

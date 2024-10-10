@@ -1,3 +1,5 @@
+"use server";
+
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "../(auth)/_services";
 import { cookies } from "next/headers";
@@ -9,30 +11,17 @@ async function refreshToken(currentUser) {
     console.log("@@refreshToken", refreshToken);
 
     if (refreshToken) {
-      try {
-        const response = await fetch("http://localhost:3000/api/auth/refresh", {
-          method: "POST",
-          body: JSON.stringify({ refreshToken })
-        });
+      await fetch("http://localhost:3000/api/auth/refresh", {
+        method: "POST",
+        body: JSON.stringify({ refreshToken })
+      })
+        .then(async (res) => await res.json())
+        .catch((err) => {
+          console.log("@@error", err);
+          console.log("@@redirecting@@");
 
-        const responseJson = await response.json();
-
-        cookies().set("accessToken", response.data.data.accessToken, {
-          secure: false,
-          httpOnly: true,
-          path: "/"
+          redirect("/sign-in");
         });
-        cookies().set("refreshToken", response.data.data.refreshToken, {
-          secure: false,
-          httpOnly: true,
-          path: "/"
-        });
-
-        console.log("@@res", responseJson);
-      } catch (error) {
-        console.log("@@error", error);
-        redirect("/sign-in");
-      }
     }
   }
 }
